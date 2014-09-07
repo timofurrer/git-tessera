@@ -2,7 +2,7 @@
 
 from tesseraexceptions import ConfigFileNotFoundError, ConfigSectionNotFoundError, ConfigOptionNotFoundError
 
-from os import path
+import os
 from ConfigParser import ConfigParser, NoSectionError, NoOptionError
 
 
@@ -10,7 +10,7 @@ class TesseraConfig(object):
     def __init__(self, path):
         self._path = path
         self._config = ConfigParser()
-        if path.exists(path):
+        if os.path.exists(path):
             self._parse()
 
     def get_path(self):

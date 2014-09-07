@@ -5,6 +5,11 @@ class TesseraError(Exception):
     pass
 
 
+class NoTesseraRepoError(TesseraError):
+    def __init__(self):
+        TesseraError.__init__(self, "not a git tessera repository")
+
+
 class ArgumentError(TesseraError):
     pass
 

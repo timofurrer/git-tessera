@@ -45,6 +45,19 @@ def create(tesserae, title):
         return False
 
 @cli.command()
+@click.argument("tessera_id")
+@pass_tesserae
+def rm(tesserae, tessera_id):
+    """
+        Removes a tessera by it's id.
+    """
+    try:
+        return tesserae.remove(tessera_id)
+    except TesseraError, e:
+        sys.stderr.write("Error: %s\n" % str(e))
+        return False
+
+@cli.command()
 @click.option("--order-by", type=str, default="type", help="keyword to order by")
 @click.option("--order-type", type=click.Choice(["asc", "desc"]), default="asc", help="order type. Ascending or Descending")
 @pass_tesserae

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import shutil
 from datetime import datetime
 from dulwich.config import StackedConfig
 from uuid import uuid1 as generate_uniq_id
@@ -39,7 +40,6 @@ class Tessera(object):
             f.write("updated: %s\n" % datetime.now().strftime("%Y-%m-%dT%H:%M:%S"))
 
         t = Tessera(t_id, t_path)
-        print("Created new tessera with id %s" % t.id)
         return t
 
     def __init__(self, tessera_id, tessera_path):
@@ -111,6 +111,13 @@ class Tessera(object):
         return self._keywords
 
     @property
+    def tessera_file(self):
+        """
+            Returns the tessera's file path.
+        """
+        return self._tessera_file
+
+    @property
     def raw_tessera_file_content(self):
         """
             Returns the raw tessera file content.
@@ -145,7 +152,6 @@ class Tessera(object):
                 else:
                     self._description += l + "\n"
 
-
     def _parse_info_file(self):
         """
             Parses the info file.
@@ -155,3 +161,9 @@ class Tessera(object):
                 self._raw_info_file_content += l + "\n"
                 key, value = l.split(":", 1)
                 self._metadata[key.strip()] = value.strip()
+
+    def remove(self):
+        """
+            Removes this tessera.
+        """
+        shutil.rmtree(self._path)

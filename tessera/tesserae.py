@@ -6,18 +6,46 @@ from gittle import Gittle
 from glob import glob
 
 from tessera import Tessera
-from tesseraexceptions import TesseraError, TesseraNotFoundError
+from tesseraexceptions import TesseraError, NoTesseraRepoError, TesseraNotFoundError
+from config import TesseraConfig
+from editor import Editor
+
+
+def verify_tessera_path(func):
+    def _wrapper(self, *args, **kwargs):
+        """
+            Verifys if the tesserae path is a valid tesserae repository.
+            Throws an exception on error or returns true.
+        """
+        if not self._is_tesserae_repo():
+            raise NoTesseraRepoError()
+        return func(self, *args, **kwargs)
+    return _wrapper
+
+
+def check_tessera_id(func):
+    def _wrapper(self, tessera_id, *args, **kwargs):
+        """
+            Checks if the tessera id exists and returns resolve's the short ids not full ones.
+        """
+        tessera_id = self._get_real_tessera_id(tessera_id)
+        return func(self, tessera_id, *args, **kwargs)
+    return _wrapper
 
 
 class Tesserae(object):
-    CONFIG_FOLDER = "/home/tuxtimo/work/git-tessera2/templates/config"
+    CONFIG_TEMPLATE = "/home/tuxtimo/work/git-tessera2/templates/config"
     ROOT_DIRECTORY = ".tesserae"
 
     LS_HEADER = ("Id", "Title", "Status", "Type", "Author", "Last updated")
 
     def __init__(self, path):
-        self._git = Gittle(path)
+        try:
+            self._git = Gittle(path)
+        except dulwich.errors.NotGitRepository:
+            raise NoTesseraRepoError()
         self._path = path
+        self._configpath = os.path.join(self.tesseraepath, "config")
 
     @property
     def path(self):
@@ -36,28 +64,15 @@ class Tesserae(object):
         except Gittle.NoGitRepository:
             return False
 
-    def _verify_path(self):
-        """
-            Verifys if the tesserae path is a valid tesserae repository.
-            Throws an exception on error or returns true.
-        """
-        if not self._is_tesserae_repo():
-            print("error: not a git tessera repository")
-            return False
-        return True
-
-    def _exists(self, tessera_id):
-        """
-            Returns wheter a tessera with the given id exists or not.
-        """
-        return os.path.exists(os.path.join(self.tesseraepath, tessera_id))
-
     def _get_real_tessera_id(self, tessera_id):
         """
             Returns the real tessera id.
             This method evaluates the full tessera id of a short tessera id.
         """
-        return glob(os.path.join(self.tesseraepath, tessera_id + "*"))[0]
+        try:
+            return os.path.basename(glob(os.path.join(self.tesseraepath, tessera_id + "*"))[0])
+        except IndexError:
+            raise TesseraNotFoundError(tessera_id)
 
     def _get_all_tesserae(self):
         """
@@ -87,31 +102,26 @@ class Tesserae(object):
             return False
 
         os.makedirs(self.tesseraepath)
-        copyfile(Tesserae.CONFIG_FOLDER, os.path.join(self.tesseraepath, "config"))
+        copyfile(Tesserae.CONFIG_TEMPLATE, self._configpath)
 
         print("Initialized empty git tesserae repository in %s" % self.tesseraepath)
         return True
 
+    @verify_tessera_path
+    @check_tessera_id
     def show(self, tessera_id):
         """
             Shows a specific tessera by passing the tessera_id parameter.
         """
-        tessera_id = self._get_real_tessera_id(tessera_id)
-
-        if not self._exists(tessera_id):
-            raise TesseraNotFoundError(tessera_id)
-
         t = Tessera(tessera_id, os.path.join(self.tesseraepath, tessera_id))
         print(t.raw_tessera_file_content)
         return True
 
+    @verify_tessera_path
     def ls(self, order_by, order_type):
         """
             Lists all tesserae and show basic information.
         """
-        if not self._verify_path():
-            return False
-
         tesserae = self._get_all_tesserae()
         rows = [(t.short_id, t.title, ", ".join(t.keywords.get("status", ["unknown"])), ", ".join(t.keywords.get("type", ["unknown"])), t.metadata.get("author", ["unknown"]), t.metadata.get("updated")) for t in tesserae]
 
@@ -132,11 +142,26 @@ class Tesserae(object):
             if n == 0:
                 print("=" * (sum(widths) + 2 * len(widths)))
 
+    @verify_tessera_path
     def create(self, title):
         """
             Creates a new tessera.
         """
-        if not self._verify_path():
-            return False
-
         tessera = Tessera.create(self.tesseraepath, title)
+
+        if not Editor.open(tessera.tessera_file, TesseraConfig(self._configpath)):
+            print("Created new tessera with id %s" % tessera.id)
+        else:
+            tessera.remove()
+        return True
+
+    @verify_tessera_path
+    @check_tessera_id
+    def remove(self, tessera_id):
+        """
+            Removes a tessera by it's id.
+        """
+        t = Tessera(tessera_id, os.path.join(self.tesseraepath, tessera_id))
+        t.remove()
+        print("Removed tessera with id '%s'" % t.id)
+        return True

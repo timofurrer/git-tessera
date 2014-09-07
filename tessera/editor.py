@@ -14,6 +14,7 @@ class Editor(object):
             3. if $EDITOR environment variable is set
             4. no editor found
     """
+    @staticmethod
     def open(files, config):
         """
             Opens the file.

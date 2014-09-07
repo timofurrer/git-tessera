@@ -5,6 +5,7 @@ from shutil import copyfile
 from gittle import Gittle
 from glob import glob
 
+from git import Git
 from tessera import Tessera
 from tesseraexceptions import TesseraError, NoTesseraRepoError, TesseraNotFoundError
 from config import TesseraConfig
@@ -40,10 +41,7 @@ class Tesserae(object):
     LS_HEADER = ("Id", "Title", "Status", "Type", "Author", "Last updated")
 
     def __init__(self, path):
-        try:
-            self._git = Gittle(path)
-        except dulwich.errors.NotGitRepository:
-            raise NoTesseraRepoError()
+        self._git = Git(path)
         self._path = path
         self._configpath = os.path.join(self.tesseraepath, "config")
 
@@ -92,7 +90,7 @@ class Tesserae(object):
             Initialize empty git tesserae repository inside git repository.
         """
         try:
-            self._git.is_working
+            self._git.is_working()
         except Gittle.NoGitRepository:
             print("error: not a git repository")
             return False
@@ -150,6 +148,10 @@ class Tesserae(object):
         tessera = Tessera.create(self.tesseraepath, title)
 
         if not Editor.open(tessera.tessera_file, TesseraConfig(self._configpath)):
+            if not self._git.commit(tessera, "tessera created: %s" % tessera.title):
+                print("error: cannot commit new tessera")
+                tessera.remove()
+
             print("Created new tessera with id %s" % tessera.id)
         else:
             tessera.remove()

@@ -118,6 +118,13 @@ class Tessera(object):
         return self._tessera_file
 
     @property
+    def info_file(self):
+        """
+            Returns the tessera's info file path.
+        """
+        return self._info_file
+
+    @property
     def raw_tessera_file_content(self):
         """
             Returns the raw tessera file content.

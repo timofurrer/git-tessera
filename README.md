@@ -4,4 +4,6 @@
 
 ***
 
-... coming soon ...
+This tool is a fork of https://github.com/neolynx/git-tessera.
+
+Coming soon ...

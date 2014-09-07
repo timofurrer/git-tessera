@@ -1,0 +1,13 @@
+# vim swap files
+*.swp
+
+# python bytecode files
+*.pyc
+
+# virtualenv
+env
+
+# python setuptools files
+build
+dist
+git_tessera.egg-info

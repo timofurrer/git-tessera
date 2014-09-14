@@ -33,4 +33,4 @@ class Editor(object):
                 if editor is None:
                     raise TesseraError("no editor found to open files. Please configure core.editor in your git configuration")
                 p = Popen([editor] + files)
-        return p.wait()
+        return not p.wait()

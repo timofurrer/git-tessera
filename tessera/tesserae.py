@@ -164,14 +164,15 @@ class Tesserae(object):
         tessera = Tessera.create(self.tesseraepath, title)
 
         if not Editor.open(tessera.tessera_file, TesseraConfig(self._configpath)):
-            if not self._git.add_tessera(tessera):
-                print("error: cannot commit new tessera")
-                tessera.remove()
-                return False
-
-            print("Created new tessera with id %s" % tessera.id)
-        else:
             tessera.remove()
+            return False
+
+        if not self._git.add_tessera(tessera):
+            print("error: cannot commit new tessera")
+            tessera.remove()
+            return False
+
+        print("Created new tessera with id %s" % tessera.id)
         return True
 
     @verify_tessera_path
@@ -188,4 +189,25 @@ class Tesserae(object):
             return False
 
         print("Removed tessera with id '%s'" % tessera.id)
+        return True
+
+    @verify_tessera_path
+    @check_tessera_id
+    def edit(self, tessera_id):
+        """
+            Edits a tessera by it's id.
+        """
+        tessera = Tessera(tessera_id, os.path.join(self.tesseraepath, tessera_id))
+
+        if not Editor.open(tessera.tessera_file, TesseraConfig(self._configpath)):
+            print("error: cannot updated tessera")
+            return False
+
+        tessera.update()
+
+        if not self._git.update_tessera(tessera):
+            print("error: cannot commit updated tessera")
+            return False
+
+        print("Updated tessera with id %s" % tessera.id)
         return True

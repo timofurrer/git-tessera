@@ -58,6 +58,19 @@ def rm(tesserae, tessera_id):
         return False
 
 @cli.command()
+@click.argument("tessera_id")
+@pass_tesserae
+def edit(tesserae, tessera_id):
+    """
+        Edits a tessera by it's id.
+    """
+    try:
+        return tesserae.edit(tessera_id)
+    except TesseraError, e:
+        sys.stderr.write("Error: %s\n", str(e))
+        return False
+
+@cli.command()
 @click.option("--order-by", type=str, default="priority", help="keyword to order by")
 @click.option("--order-type", type=click.Choice(["asc", "desc"]), default="asc", help="order type. Ascending or Descending")
 @click.option("--filter-types", type=str, help="filters for specific types")

@@ -169,6 +169,21 @@ class Tessera(object):
                 key, value = l.split(":", 1)
                 self._metadata[key.strip()] = value.strip()
 
+    def _write_info_file(self):
+        """
+            Writes the info file.
+        """
+        with open(self._info_file, "w+") as f:
+            for k, v in self._metadata.iteritems():
+                f.write("%s: %s\n" % (k, v))
+
+    def update(self):
+        """
+            Updates the timestamp of this tessera.
+        """
+        self._metadata["updated"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+        self._write_info_file()
+
     def remove(self):
         """
             Removes this tessera.

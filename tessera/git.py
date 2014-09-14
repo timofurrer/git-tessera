@@ -45,6 +45,12 @@ class Git(object):
         """
         return self._gittle.commit(message="tessera created: %s" % tessera.title, files=[os.path.relpath(tessera.tessera_file, self._gitpath), os.path.relpath(tessera.info_file, self._gitpath)])
 
+    def update_tessera(self, tessera):
+        """
+            Commits an updated Tessera to the repository.
+        """
+        return self._gittle.commit(message="tessera updated: %s" % tessera.title, files=[os.path.relpath(tessera.tessera_file, self._gitpath), os.path.relpath(tessera.info_file, self._gitpath)])
+
     def rm_tessera(self, tessera):
         """
             Removes a tessera and commits to git repository.

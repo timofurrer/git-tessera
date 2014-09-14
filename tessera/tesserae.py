@@ -38,7 +38,7 @@ class Tesserae(object):
     CONFIG_TEMPLATE = "/home/tuxtimo/work/git-tessera2/templates/config"
     ROOT_DIRECTORY = ".tesserae"
 
-    LS_HEADER = ("Id", "Title", "Status", "Type", "Author", "Last updated")
+    LS_HEADER = ("Id", "Title", "Status", "Type", "Priority", "Author", "Last updated")
 
     def __init__(self, path):
         self._git = Git(path)
@@ -121,7 +121,7 @@ class Tesserae(object):
         return True
 
     @verify_tessera_path
-    def ls(self, order_by, order_type):
+    def ls(self, order_by, order_type, filter_types):
         """
             Lists all tesserae and show basic information.
         """
@@ -131,8 +131,12 @@ class Tesserae(object):
             print("no tesserae created yet. Use git tessera create 'title' to create a new tessera")
             return True
 
+        rows = [(t.short_id, t.title, ", ".join(t.keywords.get("status", ["unknown"])), ", ".join(t.keywords.get("type", ["unknown"])), t.keywords.get("priority", ["0"])[0], t.metadata.get("author", ["unknown"]), t.metadata.get("updated"))
+                for t in tesserae if not filter_types or filter_types.intersection(t.keywords.get("type"))]
 
-        rows = [(t.short_id, t.title, ", ".join(t.keywords.get("status", ["unknown"])), ", ".join(t.keywords.get("type", ["unknown"])), t.metadata.get("author", ["unknown"]), t.metadata.get("updated")) for t in tesserae]
+        if not rows:
+            print("no tesserae found which matched your query")
+            return True
 
         if order_by:
             order_by = order_by.lower()
@@ -142,7 +146,7 @@ class Tesserae(object):
             except ValueError:
                 raise TesseraError("cannot order by '%s' because this columns does not exist. Available colums are: '%s'" % (order_by, headers))
 
-            rows = sorted(rows, key=lambda r: r[index], reverse=order_type == "desc")
+            rows = sorted(rows, key=lambda r: float(r[index]) if r[index].isdigit() else r[index], reverse=order_type == "desc")
 
         rows.insert(0, Tesserae.LS_HEADER)
         widths = [max(map(len, column)) for column in zip(*rows)]

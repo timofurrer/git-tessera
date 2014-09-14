@@ -58,15 +58,16 @@ def rm(tesserae, tessera_id):
         return False
 
 @cli.command()
-@click.option("--order-by", type=str, default="type", help="keyword to order by")
+@click.option("--order-by", type=str, default="priority", help="keyword to order by")
 @click.option("--order-type", type=click.Choice(["asc", "desc"]), default="asc", help="order type. Ascending or Descending")
+@click.option("--filter-types", type=str, help="filters for specific types")
 @pass_tesserae
-def ls(tesserae, order_by, order_type):
+def ls(tesserae, order_by, order_type, filter_types):
     """
         List all existing tesserae
     """
     try:
-        return tesserae.ls(order_by=order_by, order_type=order_type)
+        return tesserae.ls(order_by, order_type, set([x.strip() for x in filter_types.split(",")]) if filter_types else set())
     except TesseraError, e:
         sys.stderr.write("Error: %s\n" % str(e))
         return False

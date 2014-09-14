@@ -15,7 +15,7 @@ class Tessera(object):
     TESSERA_FILENAME = "tessera"
     INFO_FILENAME = "info"
 
-    KEYWORDS = ["status", "type", "tags"]
+    KEYWORDS = ["status", "type", "priority", "tags"]
 
     @classmethod
     def create(cls, basepath, title):

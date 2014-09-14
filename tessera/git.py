@@ -32,8 +32,23 @@ class Git(object):
         """
         return self._gittle.is_working
 
-    def commit(self, tessera, message):
+
+    def commit_repo(self, tesserae, message):
         """
-            commits a Tessera created by the create() method to the repository.
+            Commits the git tessera files.
         """
-        return self._gittle.commit(message=message, files=[os.path.relpath(tessera.tessera_file, self._gitpath), os.path.relpath(tessera.info_file, self._gitpath)])
+        return self._gittle.commit(message=message, files=[os.path.relpath(tesserae.configpath, self._gitpath)])
+
+    def add_tessera(self, tessera):
+        """
+            Commits a Tessera created by the create() method to the repository.
+        """
+        return self._gittle.commit(message="tessera created: %s" % tessera.title, files=[os.path.relpath(tessera.tessera_file, self._gitpath), os.path.relpath(tessera.info_file, self._gitpath)])
+
+    def rm_tessera(self, tessera):
+        """
+            Removes a tessera and commits to git repository.
+        """
+        files = [str(os.path.relpath(tessera.tessera_file, self._gitpath)), str(os.path.relpath(tessera.info_file, self._gitpath))]
+        self._gittle.rm(files)
+        return self._gittle.commit(message="tessera removed: %s" % tessera.title, files=files)

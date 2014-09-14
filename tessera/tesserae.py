@@ -53,6 +53,10 @@ class Tesserae(object):
     def tesseraepath(self):
         return os.path.join(os.path.dirname(self._git.git_dir), Tesserae.ROOT_DIRECTORY)
 
+    @property
+    def configpath(self):
+        return self._configpath
+
     def _is_tesserae_repo(self):
         """
             Checks whether the path is a tesserae repository or not.
@@ -102,6 +106,7 @@ class Tesserae(object):
         os.makedirs(self.tesseraepath)
         copyfile(Tesserae.CONFIG_TEMPLATE, self._configpath)
 
+        self._git.commit_repo(self, "tesserae initialized")
         print("Initialized empty git tesserae repository in %s" % self.tesseraepath)
         return True
 
@@ -121,6 +126,12 @@ class Tesserae(object):
             Lists all tesserae and show basic information.
         """
         tesserae = self._get_all_tesserae()
+
+        if not tesserae:
+            print("no tesserae created yet. Use git tessera create 'title' to create a new tessera")
+            return True
+
+
         rows = [(t.short_id, t.title, ", ".join(t.keywords.get("status", ["unknown"])), ", ".join(t.keywords.get("type", ["unknown"])), t.metadata.get("author", ["unknown"]), t.metadata.get("updated")) for t in tesserae]
 
         if order_by:
@@ -139,6 +150,7 @@ class Tesserae(object):
             print("  ".join(data.ljust(width) for data, width in zip(r, widths)))
             if n == 0:
                 print("=" * (sum(widths) + 2 * len(widths)))
+        return True
 
     @verify_tessera_path
     def create(self, title):
@@ -148,9 +160,10 @@ class Tesserae(object):
         tessera = Tessera.create(self.tesseraepath, title)
 
         if not Editor.open(tessera.tessera_file, TesseraConfig(self._configpath)):
-            if not self._git.commit(tessera, "tessera created: %s" % tessera.title):
+            if not self._git.add_tessera(tessera):
                 print("error: cannot commit new tessera")
                 tessera.remove()
+                return False
 
             print("Created new tessera with id %s" % tessera.id)
         else:
@@ -163,7 +176,12 @@ class Tesserae(object):
         """
             Removes a tessera by it's id.
         """
-        t = Tessera(tessera_id, os.path.join(self.tesseraepath, tessera_id))
-        t.remove()
-        print("Removed tessera with id '%s'" % t.id)
+        tessera = Tessera(tessera_id, os.path.join(self.tesseraepath, tessera_id))
+        tessera.remove()
+
+        if not self._git.rm_tessera(tessera):
+            print("error: cannot remove tessera")
+            return False
+
+        print("Removed tessera with id '%s'" % tessera.id)
         return True

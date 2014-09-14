@@ -10,7 +10,7 @@ from tesseraexceptions import TesseraKeywordNotFoundError
 
 
 class Tessera(object):
-    NEW_TESSERA_TEMPLATE = "/home/tuxtimo/work/git-tessera2/templates/new_tessera"
+    NEW_TESSERA_TEMPLATE = os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates/new_tessera")
 
     TESSERA_FILENAME = "tessera"
     INFO_FILENAME = "info"

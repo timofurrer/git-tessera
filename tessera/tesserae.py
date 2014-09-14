@@ -35,7 +35,7 @@ def check_tessera_id(func):
 
 
 class Tesserae(object):
-    CONFIG_TEMPLATE = "/home/tuxtimo/work/git-tessera2/templates/config"
+    CONFIG_TEMPLATE = os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates/config")
     ROOT_DIRECTORY = ".tesserae"
 
     LS_HEADER = ("Id", "Title", "Status", "Type", "Priority", "Author", "Last updated")
